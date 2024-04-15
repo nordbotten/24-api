@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// TODO: Add enum when moving to Postgres
+// enum UserType {
+//   ADMIN
+//   USER
+// }
+
+model User {
+  id       String    @id @default(uuid())
+  userType String    @default("USER") // USER | ADMIN
+  email    String    @unique
+  name     String?
+  password String
+  verified Boolean   @default(false)
+  hotels   Hotel[]
+  bookings Booking[]
+}
+
+model Hotel {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  address     String?
+  postCode    String?
+  city        String?
+  latitude    Float?
+  longitude   Float?
+  image       String?
+  users       User[]
+  roomTypes   RoomType[]
+  rooms       Room[]
+}
+
+model RoomType {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  price       Decimal
+  image       String?
+  hotel       Hotel     @relation(fields: [hotelId], references: [id])
+  hotelId     String
+  rooms       Room[]
+  bookings    Booking[]
+}
+
+model Room {
+  id         String    @id @default(uuid())
+  name       String
+  roomType   RoomType  @relation(fields: [roomTypeId], references: [id])
+  roomTypeId String
+  hotel      Hotel     @relation(fields: [hotelId], references: [id])
+  hotelId    String
+  bookings   Booking[]
+}
+
+model Booking {
+  id         String   @id @default(uuid())
+  fromDate   DateTime // TODO: Change to @db.Date when moving to Postgres
+  toDate     DateTime // TODO: Change to @db.Date when moving to Postgres
+  name       String
+  email      String
+  phone      String?
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     String?
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+  roomTypeId String
+  room       Room     @relation(fields: [roomId], references: [id])
+  roomId     String
+}
